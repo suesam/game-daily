@@ -1,0 +1,134 @@
+name: Import Game Daily from Gmail
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read test report from Gmail
+        env:
+          GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python <<'PY'
+          import imaplib
+          import email
+          import os
+          from pathlib import Path
+          from email.header import decode_header
+
+          TARGET_SUBJECT = "[GAME_DAILY_SCHEDULED_TEST] 2026-08-19"
+          TARGET_PATH = Path("reports/_tests/2026-08-19.md")
+
+          username = os.environ["GMAIL_USERNAME"]
+          password = os.environ["GMAIL_APP_PASSWORD"].replace(" ", "")
+
+          def decode_header_text(value):
+              result = ""
+              for data, charset in decode_header(value or ""):
+                  if isinstance(data, bytes):
+                      result += data.decode(charset or "utf-8", errors="replace")
+                  else:
+                      result += data
+              return result
+
+          def get_plain_body(msg):
+              if msg.is_multipart():
+                  for part in msg.walk():
+                      if (
+                          part.get_content_type() == "text/plain"
+                          and "attachment" not in str(
+                              part.get("Content-Disposition", "")
+                          )
+                      ):
+                          payload = part.get_payload(decode=True)
+                          if payload:
+                              charset = part.get_content_charset() or "utf-8"
+                              return payload.decode(charset, errors="replace")
+              else:
+                  payload = msg.get_payload(decode=True)
+                  if payload:
+                      charset = msg.get_content_charset() or "utf-8"
+                      return payload.decode(charset, errors="replace")
+
+              return ""
+
+          print("Connecting to Gmail...")
+
+          mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
+          mail.login(username, password)
+          mail.select("INBOX")
+
+          status, data = mail.search(
+              None,
+              'SUBJECT "GAME_DAILY_SCHEDULED_TEST"'
+          )
+
+          if status != "OK":
+              raise RuntimeError("Gmail search failed")
+
+          message_ids = data[0].split()
+
+          found = False
+
+          for message_id in reversed(message_ids):
+              status, msg_data = mail.fetch(message_id, "(RFC822)")
+
+              if status != "OK":
+                  continue
+
+              msg = email.message_from_bytes(msg_data[0][1])
+              subject = decode_header_text(msg.get("Subject")).strip()
+
+              if subject != TARGET_SUBJECT:
+                  continue
+
+              body = get_plain_body(msg).strip()
+
+              if not body:
+                  raise RuntimeError(
+                      "Found target email but Markdown body was empty"
+                  )
+
+              TARGET_PATH.parent.mkdir(parents=True, exist_ok=True)
+              TARGET_PATH.write_text(
+                  body + "\n",
+                  encoding="utf-8"
+              )
+
+              print(f"Found email: {subject}")
+              print(f"Saved to: {TARGET_PATH}")
+
+              found = True
+              break
+
+          mail.logout()
+
+          if not found:
+              raise RuntimeError(
+                  f"Target email not found: {TARGET_SUBJECT}"
+              )
+          PY
+
+      - name: Commit report
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing to commit."
+            exit 0
+          fi
+
+          git config user.name "game-daily-bot"
+          git config user.email "game-daily-bot@users.noreply.github.com"
+
+          git add reports/
+          git commit -m "Import scheduled task Gmail test"
+          git push
