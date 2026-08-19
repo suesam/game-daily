@@ -1,10 +1,21 @@
 name: Import Game Daily from Gmail
 
 on:
+  # 保留手动运行，方便排错/补档
   workflow_dispatch:
+
+  # 北京时间每天 08:27、09:27、10:27、11:27、12:27 检查
+  # GitHub cron 默认按 UTC 运行
+  schedule:
+    - cron: "27 0-4 * * *"
 
 permissions:
   contents: write
+
+# 防止两个定时任务同时修改仓库
+concurrency:
+  group: import-game-daily
+  cancel-in-progress: false
 
 jobs:
   import-report:
@@ -13,8 +24,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Read test report from Gmail
+      - name: Import Markdown reports from Gmail Sent
         env:
           GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -23,112 +36,269 @@ jobs:
           import imaplib
           import email
           import os
+          import re
           from pathlib import Path
           from email.header import decode_header
 
-          TARGET_SUBJECT = "[GAME_DAILY_SCHEDULED_TEST] 2026-08-19"
-          TARGET_PATH = Path("reports/_tests/2026-08-19.md")
+          USERNAME = os.environ["GMAIL_USERNAME"]
+          PASSWORD = os.environ["GMAIL_APP_PASSWORD"].replace(" ", "")
 
-          username = os.environ["GMAIL_USERNAME"]
-          password = os.environ["GMAIL_APP_PASSWORD"].replace(" ", "")
+          # 只接受我们日报任务生成的附件
+          FILE_PATTERN = re.compile(
+              r"^AI游戏每日简报_(\d{4}-\d{2}-\d{2})_Day(\d+)\.md$"
+          )
 
-          def decode_header_text(value):
+          def decode_mime_text(value):
+              if not value:
+                  return ""
+
               result = ""
-              for data, charset in decode_header(value or ""):
+
+              for data, charset in decode_header(value):
                   if isinstance(data, bytes):
-                      result += data.decode(charset or "utf-8", errors="replace")
+                      result += data.decode(
+                          charset or "utf-8",
+                          errors="replace"
+                      )
                   else:
                       result += data
+
               return result
 
-          def get_plain_body(msg):
-              if msg.is_multipart():
-                  for part in msg.walk():
-                      if (
-                          part.get_content_type() == "text/plain"
-                          and "attachment" not in str(
-                              part.get("Content-Disposition", "")
-                          )
-                      ):
-                          payload = part.get_payload(decode=True)
-                          if payload:
-                              charset = part.get_content_charset() or "utf-8"
-                              return payload.decode(charset, errors="replace")
-              else:
-                  payload = msg.get_payload(decode=True)
-                  if payload:
-                      charset = msg.get_content_charset() or "utf-8"
-                      return payload.decode(charset, errors="replace")
+          def find_sent_mailbox(mail):
+              status, mailboxes = mail.list()
 
-              return ""
+              if status != "OK":
+                  raise RuntimeError(
+                      "Unable to list Gmail mailboxes"
+                  )
+
+              # Gmail 会给“已发送”文件夹加 \Sent 特殊标记，
+              # 因此不依赖界面语言。
+              for raw in mailboxes or []:
+                  if b"\\Sent" not in raw:
+                      continue
+
+                  match = re.match(
+                      br'^\([^)]*\)\s+"[^"]*"\s+(.+)$',
+                      raw
+                  )
+
+                  if match:
+                      return match.group(1).decode(
+                          "ascii",
+                          errors="ignore"
+                      )
+
+              raise RuntimeError(
+                  "Unable to locate Gmail Sent mailbox"
+              )
 
           print("Connecting to Gmail...")
 
-          mail = imaplib.IMAP4_SSL("imap.gmail.com", 993)
-          mail.login(username, password)
-          mail.select("INBOX")
+          mail = imaplib.IMAP4_SSL(
+              "imap.gmail.com",
+              993
+          )
 
-          status, data = mail.search(
-              None,
-              'SUBJECT "GAME_DAILY_SCHEDULED_TEST"'
+          mail.login(
+              USERNAME,
+              PASSWORD
+          )
+
+          sent_mailbox = find_sent_mailbox(mail)
+
+          print(
+              f"Using Sent mailbox: {sent_mailbox}"
+          )
+
+          status, _ = mail.select(
+              sent_mailbox,
+              readonly=True
           )
 
           if status != "OK":
-              raise RuntimeError("Gmail search failed")
+              raise RuntimeError(
+                  "Unable to open Gmail Sent mailbox"
+              )
+
+          status, data = mail.search(
+              None,
+              "ALL"
+          )
+
+          if status != "OK":
+              raise RuntimeError(
+                  "Unable to search Gmail Sent mailbox"
+              )
 
           message_ids = data[0].split()
 
-          found = False
+          # 日报都是最新邮件，不需要每次扫描整个邮箱。
+          message_ids = message_ids[-200:]
 
+          imported = 0
+          updated = 0
+          seen_dates = set()
+
+          # 从最新邮件向旧邮件扫描。
+          # 如果同一天重新生成过日报，以最新邮件为准。
           for message_id in reversed(message_ids):
-              status, msg_data = mail.fetch(message_id, "(RFC822)")
+
+              status, message_data = mail.fetch(
+                  message_id,
+                  "(RFC822)"
+              )
 
               if status != "OK":
                   continue
 
-              msg = email.message_from_bytes(msg_data[0][1])
-              subject = decode_header_text(msg.get("Subject")).strip()
+              raw_message = message_data[0][1]
 
-              if subject != TARGET_SUBJECT:
-                  continue
-
-              body = get_plain_body(msg).strip()
-
-              if not body:
-                  raise RuntimeError(
-                      "Found target email but Markdown body was empty"
-                  )
-
-              TARGET_PATH.parent.mkdir(parents=True, exist_ok=True)
-              TARGET_PATH.write_text(
-                  body + "\n",
-                  encoding="utf-8"
+              msg = email.message_from_bytes(
+                  raw_message
               )
 
-              print(f"Found email: {subject}")
-              print(f"Saved to: {TARGET_PATH}")
+              for part in msg.walk():
 
-              found = True
-              break
+                  filename = part.get_filename()
+
+                  if not filename:
+                      continue
+
+                  filename = decode_mime_text(
+                      filename
+                  )
+
+                  match = FILE_PATTERN.fullmatch(
+                      filename
+                  )
+
+                  if not match:
+                      continue
+
+                  report_date = match.group(1)
+                  day_number = match.group(2)
+
+                  # 同一天只处理最新的一封
+                  if report_date in seen_dates:
+                      continue
+
+                  seen_dates.add(report_date)
+
+                  payload = part.get_payload(
+                      decode=True
+                  )
+
+                  if not payload:
+                      print(
+                          f"Empty attachment: {filename}"
+                      )
+                      continue
+
+                  # 日报任务要求 UTF-8 Markdown。
+                  try:
+                      markdown = payload.decode(
+                          "utf-8"
+                      )
+                  except UnicodeDecodeError:
+                      raise RuntimeError(
+                          f"Attachment is not UTF-8: "
+                          f"{filename}"
+                      )
+
+                  first_line = (
+                      markdown.splitlines()[0]
+                      if markdown.splitlines()
+                      else ""
+                  )
+
+                  # 做一次基本安全校验，避免误归档
+                  if not first_line.startswith(
+                      "# AI 游戏每日简报｜"
+                  ):
+                      print(
+                          f"Skipped unexpected Markdown: "
+                          f"{filename}"
+                      )
+                      continue
+
+                  if report_date not in first_line:
+                      print(
+                          f"Skipped date mismatch: "
+                          f"{filename}"
+                      )
+                      continue
+
+                  year, month, _ = (
+                      report_date.split("-")
+                  )
+
+                  target = Path(
+                      f"reports/{year}/{month}/"
+                      f"{report_date}.md"
+                  )
+
+                  target.parent.mkdir(
+                      parents=True,
+                      exist_ok=True
+                  )
+
+                  # 如果仓库里已有完全相同内容，不产生新 commit
+                  if (
+                      target.exists()
+                      and target.read_bytes() == payload
+                  ):
+                      print(
+                          f"Already archived: "
+                          f"{target}"
+                      )
+                      continue
+
+                  existed = target.exists()
+
+                  # 原始附件字节直接写入，不重新转换 Markdown
+                  target.write_bytes(payload)
+
+                  if existed:
+                      updated += 1
+                      print(
+                          f"Updated Day {day_number}: "
+                          f"{target}"
+                      )
+                  else:
+                      imported += 1
+                      print(
+                          f"Imported Day {day_number}: "
+                          f"{target}"
+                      )
 
           mail.logout()
 
-          if not found:
-              raise RuntimeError(
-                  f"Target email not found: {TARGET_SUBJECT}"
-              )
+          print(
+              f"Imported: {imported}, "
+              f"Updated: {updated}"
+          )
           PY
 
-      - name: Commit report
+      - name: Commit imported reports
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
-            echo "Nothing to commit."
+          git add reports/
+
+          if git diff --cached --quiet; then
+            echo "No new or updated reports."
             exit 0
           fi
 
           git config user.name "game-daily-bot"
-          git config user.email "game-daily-bot@users.noreply.github.com"
+          git config user.email \
+            "game-daily-bot@users.noreply.github.com"
 
-          git add reports/
-          git commit -m "Import scheduled task Gmail test"
-          git push
+          git commit -m \
+            "Archive Game Daily report"
+
+          # 尽量避免运行期间仓库出现新提交造成冲突
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+
+          git push origin \
+            "HEAD:${GITHUB_REF_NAME}"
