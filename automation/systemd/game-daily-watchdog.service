@@ -1,0 +1,8 @@
+[Unit]
+Description=Check and repair Game Daily GitHub import
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/game-daily-watchdog/check_daily.sh
+StandardOutput=append:/home/ubuntu/game-daily-watchdog/watchdog.log
+StandardError=append:/home/ubuntu/game-daily-watchdog/watchdog.log
