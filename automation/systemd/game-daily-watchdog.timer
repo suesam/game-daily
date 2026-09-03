@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Game Daily watchdog daily at 13:10 Beijing time
+
+[Timer]
+OnCalendar=*-*-* 05:10:00 UTC
+Persistent=true
+Unit=game-daily-watchdog.service
+
+[Install]
+WantedBy=timers.target
