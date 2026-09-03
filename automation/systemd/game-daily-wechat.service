@@ -1,0 +1,8 @@
+[Unit]
+Description=Sync latest Game Daily report to WeChat draft
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/wechat-publisher
+ExecStart=/opt/wechat-publisher/.venv/bin/python /opt/wechat-publisher/publish_latest.py
