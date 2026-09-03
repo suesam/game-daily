@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Game Daily for WeChat draft updates
+
+[Timer]
+OnCalendar=*-*-* 08..23:40:00 Asia/Shanghai
+OnCalendar=*-*-* 11:50:00 Asia/Shanghai
+Persistent=true
+Unit=game-daily-wechat.service
+
+[Install]
+WantedBy=timers.target
