@@ -1,0 +1,7 @@
+[Unit]
+Description=Early Game Daily GitHub import watchdog
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/game-daily-watchdog/check_daily.sh
