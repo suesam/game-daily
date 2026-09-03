@@ -1,6 +1,6 @@
 # Game Daily Automation / 迁移包
 
-这个目录保存 AI 游戏每日简报的**完整自动化链路说明、迁移方案、服务器运行代码、systemd 配置、生成契约和 Skill 草案**。
+这个目录保存 AI 游戏每日简报的**完整自动化链路说明、迁移方案、服务器运行代码、systemd 配置、生成契约、凭证恢复手册和 Skill 草案**。
 
 目标不是把现有流程永久绑定在 ChatGPT / Codex 上，而是把它拆成可替换组件：
 
@@ -37,7 +37,9 @@ Server side:
 
 - [docs/CURRENT_PIPELINE.md](docs/CURRENT_PIPELINE.md)：现网链路与每个组件职责。
 - [docs/MIGRATION.md](docs/MIGRATION.md)：推荐的分阶段迁移步骤。
-- [docs/SECRETS_AND_CONFIG.md](docs/SECRETS_AND_CONFIG.md)：Secrets / 环境变量 / 凭证说明。
+- [docs/SECRETS_AND_CONFIG.md](docs/SECRETS_AND_CONFIG.md)：Secrets / 环境变量索引。
+- [docs/CREDENTIAL_RECOVERY.md](docs/CREDENTIAL_RECOVERY.md)：**Google App Password、GitHub PAT、微信公众号 AppSecret / media_id、Kimi / GLM API Key 的申请、轮换与恢复。**
+- [docs/REBUILD_FROM_ZERO.md](docs/REBUILD_FROM_ZERO.md)：**换服务器或几年后重新部署时，从零恢复的执行顺序。**
 - [prompts/game-daily-contract.md](prompts/game-daily-contract.md)：从当前定时任务抽离出的日报生成契约。
 - [skill/SKILL.md](skill/SKILL.md)：未来包装为 Skill / Agent 能力时可直接改造的草案。
 - [config/pipeline.example.yaml](config/pipeline.example.yaml)：供应商无关的流水线配置示例。
@@ -61,4 +63,12 @@ GitHub 现有两条生产 Workflow 继续以仓库原路径为 canonical source�
 
 ## 安全原则
 
-真实密钥不会提交进仓库。仓库只保留变量名和 `.env.example`。当前服务器上的运行态 `.env`、PAT、Gmail App Password、微信公众号 Secret、state.json、封面 media_id 均不在本迁移包中。
+真实密钥不会提交进仓库。仓库只保留：
+- 变量名
+- `.env.example`
+- 获取方式
+- 最小权限
+- 轮换方法
+- 从零重建步骤
+
+当前服务器上的运行态 `.env`、PAT、Gmail App Password、微信公众号 Secret、state.json、封面 media_id 均不在迁移包中。
