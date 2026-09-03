@@ -1,0 +1,43 @@
+version: 1
+timezone: Asia/Shanghai
+
+schedule:
+  daily_at: "08:00"
+
+artifact:
+  attachment_name: "AI游戏每日简报_{date}_Day{day}.md"
+  archive_path: "reports/{yyyy}/{mm}/{date}.md"
+  encoding: utf-8
+
+research:
+  history_days: 7
+  enable_explosion_detection: true
+  sections:
+    core: true
+    platform_charts: true
+    ai_native: true
+    research: true
+    community: true
+
+providers:
+  model:
+    adapter: env:GAME_DAILY_MODEL_PROVIDER
+    model: env:GAME_DAILY_MODEL
+  search:
+    adapter: env:GAME_DAILY_SEARCH_PROVIDER
+
+validation:
+  command: "python automation/tests/validate_report.py {artifact_path}"
+  fail_closed: true
+
+delivery:
+  mode: gmail_compat
+  gmail_compat:
+    send_to_self: true
+  direct_git:
+    repo: suesam/game-daily
+    branch: main
+
+publish:
+  github_pages: true
+  wechat_draft: true
