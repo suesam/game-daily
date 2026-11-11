@@ -8,6 +8,8 @@
 
 ---
 
+**课程资料落实（2026-11-11）**：[完整教学索引](agent-learning/Agent-Learning-Index.md) · [课程资源审计](agent-learning/Course-Resources-2026-11-11.md)。现有 Day00–Day10 教学版讲义，但尚未进行实战验收。
+
 ## 一、课程总目标
 
 10 天后，应能够独立回答并实践以下问题：
