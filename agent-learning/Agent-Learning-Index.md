@@ -2,6 +2,8 @@
 
 > 2026-11-11 对原计划实施课程资源核查、教学文件补齐。**资料补齐不代表已完成学习。**
 
+> **在线交互网站**：[Agent / Harness Academy](https://suesam.github.io/game-daily/agent-course/)（自动保存、测验、代码练习、导出记录)
+
 原始大纲：[10 天系统学习计划](../00-10-day-agent-course.md)；[课程资源审计](Course-Resources-2026-11-11.md)。
 
 ## 课程目录

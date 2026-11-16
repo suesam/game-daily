@@ -1,6 +1,10 @@
 name: Build Game Daily Index and Site
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/agent-course/**'
   workflow_dispatch:
   workflow_run:
     workflows:
@@ -20,6 +24,7 @@ concurrency:
 jobs:
   build-and-deploy:
     if: >
+      github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
 
@@ -35,6 +40,14 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: Validate Agent Course static site
+        run: |
+          node --check docs/agent-course/app.js
+          node --check docs/agent-course/curriculum.js
+          node -e "global.window = {}; require('./docs/agent-course/curriculum.js'); const x = window.AGENT_COURSE; if (x.days.length !== 11 || x.days.reduce((n,d)=>n+d.quiz.length,0)!==44 || x.days.some(d=>d.topics.length!==3 || d.lab.tests.length!==3)) process.exit(1); console.log('Agent course content validated: 11 stages, 44 questions, 33 lessons');"
+          test -f docs/agent-course/index.html
+          test -f docs/agent-course/styles.css
 
       - name: Generate README, indexes and website
         run: |
@@ -121,6 +134,7 @@ jobs:
               "",
               "- [全部日报索引](reports/INDEX.md)",
               "- [网页版日报](https://suesam.github.io/game-daily/)",
+              "- [Agent / Harness 在线交互课程](https://suesam.github.io/game-daily/agent-course/)",
               "",
               "> README、索引和网站由 GitHub Actions 自动维护。",
               "",
@@ -262,6 +276,7 @@ jobs:
                 游戏行业、平台热榜、AI 游戏进展、研究与社区信号的每日观察。
               </p>
               <p><a href="{latest_href}">阅读最新一期 →</a></p>
+              <p><a href="agent-course/">进入 Agent / Harness 自主学习课程 →</a></p>
             </header>
             <main>
               <h2>全部日报</h2>
