@@ -45,6 +45,7 @@ jobs:
         run: |
           node --check docs/agent-course/app.js
           node --check docs/agent-course/curriculum.js
+          node docs/agent-course/site-smoke.cjs
           node -e "global.window = {}; require('./docs/agent-course/curriculum.js'); const x = window.AGENT_COURSE; if (x.days.length !== 11 || x.days.reduce((n,d)=>n+d.quiz.length,0)!==44 || x.days.some(d=>d.topics.length!==3 || d.lab.tests.length!==3)) process.exit(1); console.log('Agent course content validated: 11 stages, 44 questions, 33 lessons');"
           test -f docs/agent-course/index.html
           test -f docs/agent-course/styles.css

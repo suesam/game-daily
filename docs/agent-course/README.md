@@ -25,3 +25,7 @@ localStorage 键为 agent-harness-academy-progress-v1，仅在当前浏览器和
 ## 判分与教学声明
 
 测验由网页依据课程答案表即时判分，成绩和错题可复盘；代码实践的勾选仅代表学习者本人确认，网页没有真实编译/执行 Python 项目或自动验证 GitHub commit。
+
+## 自动测试
+
+修改课程站点会触发 GitHub Pages 构建并执行 `node docs/agent-course/site-smoke.cjs`，检查课程数量、33 节、44 题、章节跳转、测验判分、复盘笔记保存与刷新恢复。
