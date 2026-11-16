@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Agent & Harness Academy — 从核心循环到生产工程，自主学习、交互测验、代码实验、记录导出">
+<meta name="theme-color" content="#122436">
+<title>Agent / Harness Academy · 自主学习工作台</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+<aside class="sidebar" id="sidebar" aria-label="课程目录">
+  <a class="brand" href="#overview" aria-label="Agent Academy 首页"><span class="brand-symbol">∴</span><span><strong>Agent Academy</strong><small>BUILD · TEST · UNDERSTAND</small></span></a>
+  <div class="side-caption">学习空间</div>
+  <button class="nav-overview" id="overview-nav" data-action="overview"><span class="tiny-icon">◈</span> 我的学习看板 <span id="overview-dot">↗</span></button>
+  <div class="side-section"><span>课程路径</span><span id="side-summary">0/10</span></div>
+  <nav id="course-nav" class="course-nav" aria-label="阶段导航"></nav>
+  <div class="sidebar-footer"><div class="side-tip-icon">⌁</div><strong>一阶段，一个可验证结果。</strong><p>随时停下来，进度在本机保存。完成后导出学习记录供复盘。</p><button data-action="export" class="sidebar-export">↓ 导出学习记录</button></div>
+</aside>
+<div class="content-frame">
+<header class="topbar">
+  <button class="mobile-menu" data-action="menu" aria-label="打开导航">☰</button>
+  <div class="breadcrumbs"><span>课程</span><span class="slash">/</span><span id="crumb-current">学习看板</span></div>
+  <div class="top-actions"><span class="local-mark"><span class="status-pip"></span> 本机自动保存</span><button class="theme-button" data-action="theme" title="切换深浅主题" aria-label="切换主题">◐</button><button class="outline-btn" data-action="import">导入记录</button><button class="primary-btn small-btn" data-action="export">导出 JSON <span>↓</span></button></div>
+</header>
+<main id="main" class="main-content" tabindex="-1"></main>
+<footer class="bottom-note">Agent Academy · 使用本地存储，不上传答题/笔记 · <a href="https://github.com/suesam/game-daily/tree/main/agent-learning" target="_blank" rel="noopener">课程原仓库</a></footer>
+</div>
+</div>
+<input id="import-input" type="file" accept=".json,application/json" hidden>
+<div id="toast" class="toast" aria-live="polite"></div>
+<script src="curriculum.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
