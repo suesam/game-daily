@@ -28,5 +28,6 @@
 
 - [全部日报索引](reports/INDEX.md)
 - [网页版日报](https://suesam.github.io/game-daily/)
+- [Agent / Harness 在线交互课程](https://suesam.github.io/game-daily/agent-course/)
 
 > README、索引和网站由 GitHub Actions 自动维护。
