@@ -101,13 +101,37 @@ function dayHeader(d){
 function lesson(d){
  const r=record(d.day);
  const n=Math.max(0,Math.min(d.topics.length-1,Number(state.activeLesson)||0));
- const t=d.topics[n];
+ const t=d.topics[n],deep=window.AGENT_DEEP&&window.AGENT_DEEP[d.day]&&window.AGENT_DEEP[d.day][n];
  let html='<div class="lesson-list">';
  d.topics.forEach((x,i)=>{html+='<button class="lesson-chip '+(n===i?"active":"")+'" data-action="lesson" data-index="'+i+'">'+(r.read.includes(i)?"✓ ":"")+(i+1)+'. '+esc(x[0])+'</button>';});
- html+='</div><article class="concept-card"><span class="pill">知识单元 '+(n+1)+' / '+d.topics.length+'</span><h2>'+esc(t[0])+'</h2><div class="explanation">'+esc(t[1])+'</div>';
- html+='<div class="case-box"><b>EXAMPLE · 工程示例</b><p>'+esc(t[2])+'</p></div><div class="takeaway"><b>KEY TAKEAWAY</b><p>'+esc(t[3])+'</p></div>';
- html+='<button class="outline-btn" data-action="mark-read" data-index="'+n+'">'+(r.read.includes(n)?"✓ 已标记阅读":"我已理解本节")+'</button><p class="small-help">阅读打卡不代表测验通过。建议先自述原理，再查看下一节。</p></article>';
- html+='<div class="step-nav"><button class="outline-btn" data-action="prev" '+(n===0?"disabled":"")+' >← 上一节</button><button class="primary-btn" data-action="'+(n===d.topics.length-1?"tab":"next")+'" data-tab="quiz">'+(n===d.topics.length-1?"开始测验 →":"下一节 →")+'</button></div>';
+ html+='</div><article class="concept-card deep-lesson"><div class="flex-row"><span class="pill">知识单元 '+(n+1)+' / '+d.topics.length+'</span><span class="pill gray">系统讲义 · 代码 · 推导 · 实验</span></div><h2>'+esc(t[0])+'</h2>';
+ if(!deep){
+   html+='<div class="callout">本节深入教学内容尚未加载，请检查章节数据文件；不会将几句话摘要冒充完整课程。</div><div class="explanation">'+esc(t[1])+'</div>';
+ }else{
+   html+='<section class="learning-goal"><strong>本节结束时你应该能够</strong><p>'+esc(deep.goal)+'</p></section>';
+   html+='<div class="lecture-toc"><strong>本节内容</strong><span>4 段深入原理</span><span>逐步执行过程</span><span>代码示例</span><span>错因与挑战题</span></div>';
+   html+='<div class="lecture-section-label">01 / DEEP DIVE · 深入理解</div>';
+   deep.sections.forEach((section,i)=>{
+      html+='<section class="lecture-section"><div class="lecture-index">'+String(i+1).padStart(2,"0")+'</div><div><h3>'+esc(section[0])+'</h3><p>'+esc(section[1])+'</p></div></section>';
+   });
+   html+='<div class="lecture-section-label">02 / EXECUTION · 一次完整的执行路径</div><div class="walkthrough">';
+   deep.walk.forEach((step,i)=>{
+      html+='<div class="walk-step"><span class="walk-number">'+String(i+1).padStart(2,"0")+'</span><div>'+esc(step)+'</div></div>';
+   });
+   html+='</div>';
+   html+='<div class="lecture-section-label">03 / IMPLEMENTATION · 代码与机制</div>';
+   html+='<p class="code-intro">'+esc(deep.kind)+'</p>';
+   html+='<pre class="lecture-code"><code>'+esc(deep.code)+'</code></pre>';
+   html+='<p class="small-help">运行代码前先阅读代码类型说明；标记为伪代码的内容用于架构推理，不保证可以直接执行。</p>';
+   html+='<div class="lecture-section-label">04 / BOUNDARIES · 错误边界与反例</div>';
+   html+='<div class="lecture-warning"><span class="warning-symbol">!</span><div><strong>常见误区</strong><p>'+esc(deep.traps)+'</p></div></div>';
+   html+='<div class="case-box"><b>原有课程的快速示例</b><p>'+esc(t[2])+'</p></div>';
+   html+='<div class="takeaway"><b>关键结论</b><p>'+esc(t[3])+'</p></div>';
+   html+='<div class="lecture-section-label">05 / RECALL · 主动推理与答案</div>';
+   html+='<div class="lecture-exercise"><strong>先独立回答</strong><p>'+esc(deep.exercise)+'</p><details><summary>查看参考解析（先思考再展开）</summary><p>'+esc(deep.answer)+'</p></details></div>';
+ }
+ html+='<div class="reading-complete"><div><strong>读完后再标记本节</strong><p>这只记录你已阅读；后面的知识测验、真实代码实践和学习复盘分别验收。</p></div><button class="outline-btn" data-action="mark-read" data-index="'+n+'">'+(r.read.includes(n)?"✓ 已记录阅读":"我读完了这一节")+'</button></div></article>';
+ html+='<div class="step-nav"><button class="outline-btn" data-action="prev" '+(n===0?"disabled":"")+' >← 上一节</button><button class="primary-btn" data-action="'+(n===d.topics.length-1?"tab":"next")+'" data-tab="quiz">'+(n===d.topics.length-1?"开始本阶段测验 →":"下一节课程 →")+'</button></div>';
  return html;
 }
 function testView(d){

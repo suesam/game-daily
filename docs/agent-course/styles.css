@@ -15,3 +15,41 @@ body.dark .case-box b{color:#b4d6f9}body.dark .case-box p,body.dark .takeaway p{
 @media(max-width:1120px){.sidebar{width:228px;flex-basis:228px}.main-content{padding:32px 30px 65px}.local-mark{display:none}.hero-mini{display:none}}
 @media(max-width:800px){.sidebar{position:fixed;left:0;transform:translateX(-100%);transition:transform .2s;width:280px;height:100vh;box-shadow:0 20px 30px #0b192930}.sidebar.open{transform:translateX(0)}.mobile-menu{display:block}.topbar{padding:0 17px;height:62px}.main-content{padding:28px 17px 60px}.course-grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:repeat(3,1fr)}.stage-counter{display:none}.hero-brief{padding:23px}.page-title{font-size:29px}.top-actions{gap:4px}.top-actions .outline-btn{display:none}.answers{grid-template-columns:1fr}.scenario-grid{grid-template-columns:1fr}.stat-card{padding:13px}.stat-card strong{font-size:22px}}
 @media(max-width:440px){.top-actions .small-btn{padding:8px}.breadcrumbs{font-size:11px;max-width:135px}.stat-grid{grid-template-columns:1fr 1fr}.stat-grid .stat-card:last-child{grid-column:span 2}.concept-card,.card,.quiz-card{padding:18px 17px}.hero-brief h2{font-size:20px}.stage-head .page-title{font-size:27px}}
+
+/* Deep curriculum v1.1 — reading experience */
+.deep-lesson{padding:30px clamp(20px,3vw,42px);line-height:1.9}
+.deep-lesson h2{font-size:clamp(23px,2.5vw,29px);margin:16px 0 24px;line-height:1.5}
+.learning-goal{padding:17px 21px;background:var(--accentSoft);border-radius:11px;border-left:3px solid var(--accent);margin:18px 0 24px}
+.learning-goal strong{color:var(--accentText);font-size:12px;letter-spacing:.4px}
+.learning-goal p{color:var(--text);font-size:14px;margin:5px 0 0;line-height:1.95}
+.lecture-toc{display:flex;gap:8px 13px;align-items:center;flex-wrap:wrap;margin-bottom:36px;padding:12px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.lecture-toc strong{font-size:11px;color:var(--text);margin-right:8px}
+.lecture-toc span{font-size:11px;color:var(--muted);background:var(--canvas);border:1px solid var(--line);border-radius:6px;padding:4px 7px}
+.lecture-section-label{font:750 11px var(--mono);letter-spacing:1.1px;color:var(--accent);margin:39px 0 19px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.lecture-section{display:grid;grid-template-columns:37px minmax(0,1fr);gap:13px;margin:0 0 29px}
+.lecture-index{font:750 12px var(--mono);color:var(--accent);padding-top:6px}
+.lecture-section h3{font-size:17px;color:var(--text);letter-spacing:-.3px;line-height:1.5;margin:0 0 12px}
+.lecture-section p{font-size:14px;line-height:2.12;color:var(--text);margin:0;text-wrap:pretty}
+.walkthrough{padding:4px 0 2px}
+.walk-step{display:grid;grid-template-columns:38px minmax(0,1fr);gap:13px;align-items:start;padding:0 0 20px;position:relative;font-size:13px;color:var(--text);line-height:1.95}
+.walk-step:not(:last-child):before{content:"";position:absolute;top:26px;bottom:0;left:14px;border-left:1px solid #a7cec2}
+.walk-number{z-index:1;width:29px;height:29px;display:grid;place-items:center;background:var(--accentSoft);color:var(--accentText);border:1px solid #a3d7c5;border-radius:9px;font:700 11px var(--mono)}
+.code-intro{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.9}
+.lecture-code{background:#132738;color:#d7f0e9;padding:23px;border-radius:12px;font:12px/1.9 var(--mono);white-space:pre;overflow-x:auto;tab-size:4}
+.lecture-warning{display:flex;gap:14px;border:1px solid #ead1a0;background:var(--softAmber);border-radius:11px;padding:15px 19px;margin:17px 0 22px}
+.warning-symbol{display:grid;place-items:center;width:26px;height:26px;border-radius:7px;color:#8b5615;background:#f6dfa5;font-weight:850;flex:0 0 26px}
+.lecture-warning strong{color:var(--amber);font-size:13px}
+.lecture-warning p{color:var(--text);font-size:13px;line-height:1.95;margin:4px 0 0}
+.lecture-exercise{border:1px solid #b3d9d2;background:var(--accentSoft);border-radius:13px;padding:19px 21px}
+.lecture-exercise strong{color:var(--accentText);font-size:13px}
+.lecture-exercise p{font-size:14px;color:var(--text);line-height:1.95;margin:9px 0 16px}
+.lecture-exercise details{border-top:1px solid #aad7ca;padding-top:14px}
+.lecture-exercise summary{color:var(--accentText);font-size:12px;font-weight:750;cursor:pointer}
+.lecture-exercise details p{font-size:13px;margin-top:11px}
+.reading-complete{border-top:1px solid var(--line);margin-top:35px;padding:25px 0 0;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.reading-complete strong{font-size:13px}
+.reading-complete p{font-size:12px;color:var(--muted);margin:4px 0}
+body.dark .lecture-warning{border-color:#786036}
+body.dark .warning-symbol{background:#6d5227;color:#ffe8a6}
+body.dark .walk-number{border-color:#38776c}
+@media(max-width:650px){.lecture-section{grid-template-columns:26px minmax(0,1fr);gap:8px}.lecture-section p{font-size:13px}.deep-lesson{padding:20px 17px}.reading-complete{flex-direction:column;align-items:stretch}.lecture-code{font-size:11px;padding:15px}.lecture-toc{gap:6px}}
