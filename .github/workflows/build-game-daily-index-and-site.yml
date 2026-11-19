@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/agent-course/**'
+      - 'docs/github-daily/**'
   workflow_dispatch:
   workflow_run:
     workflows:
@@ -279,6 +280,7 @@ jobs:
               </p>
               <p><a href="{latest_href}">阅读最新一期 →</a></p>
               <p><a href="agent-course/">进入 Agent / Harness 自主学习课程 →</a></p>
+              <p><a href="github-daily/">📦 GitHub 趋势雷达日报 →</a></p>
             </header>
             <main>
               <h2>全部日报</h2>
